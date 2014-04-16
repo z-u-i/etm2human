@@ -257,6 +257,7 @@ DECL_DECODE_FN(normal_data) /* XXX: assumes address only tracing */
 			addr |= (stream[idx] & 0x0f) << 28;
 
 		pdbg("----- got data address: %x\n", addr);
+		tracer_add_data_address(s->tracer, addr);
 	} else
 		pdbg("----- data address not included\n");
 
@@ -378,11 +379,9 @@ DECL_DECODE_FN(p_header_ca_format1)
 DECL_DECODE_FN(p_header_ca_format2)
 {
 	int i;
-
-	tracer_next_cycle(s->tracer, 1);
 	for (i = 3; i > 1; i--)
 		tracer_add_insn(s->tracer, !(stream[0] & (1 << i)), 0);
-
+	tracer_next_cycle(s->tracer, 1);
 	return 1;
 }
 
@@ -395,15 +394,18 @@ DECL_DECODE_FN(p_header_ca_format3)
 
 	tracer_next_cycle(s->tracer, _w);
 	if (_e)
-		tracer_add_insn(s->tracer, 1, 0);
-
+		tracer_add_insn(s->tracer, 1, 1);
+	else
+		tracer_next_cycle(s->tracer,1);
+	
 	return 1;
 }
 
 DECL_DECODE_FN(p_header_ca_format4)
 {
-	tracer_add_insn(s->tracer, !(stream[0] & 4), 0);
-
+	tracer_next_cycle(s->tracer,-1);
+	tracer_add_insn(s->tracer, !(stream[0] & 4), 1);
+	
 	return 1;
 }
 

@@ -9,6 +9,7 @@ struct insn {
 	uint32_t addr;
 	unsigned int flags;
 	int cycle;
+	uint32_t data_addr;
 };
 
 #define INSN_QUEUE_MAX 4096
@@ -25,6 +26,7 @@ struct tracer {
 	uint32_t next_addr;
 	uint32_t ctxid;
 	int cycle;
+	int start_cycle;
 	struct insn insns[INSN_QUEUE_MAX];
 	int cur_insn;
 };

@@ -20,8 +20,13 @@ void insn_print(struct insn *insn)
 	else
 		SAY("%08x ", insn->opcode);
 
-	SAY("cycle: %d cond: %s\n", insn->cycle,
+	SAY("cycle: %d cond: %s", insn->cycle,
 			(insn->flags & INSN_COND_OK) ? "PASS" : "FAIL");
+
+	if (insn->data_addr != NULL)
+		SAY(" data_addr: %08x\n", insn->data_addr);
+	else
+		SAY("\n");
 }
 
 struct tracer *tracer_init(void)
@@ -51,7 +56,7 @@ void tracer_flush(struct tracer *t)
 	int i;
 
 	SAY("trace flow started at %08x, cycle %d, ctxid %x\n",
-			t->addr, t->cycle, t->ctxid);
+			t->addr, t->start_cycle, t->ctxid);
 	for (i = 0; i < t->cur_insn; i++)
 		insn_print(&t->insns[i]);
 }
@@ -66,6 +71,7 @@ void tracer_sync(struct tracer *t, uint32_t addr, int cycles, uint32_t ctxid)
 	t->addr = addr;
 	t->next_addr = addr;
 	t->cycle = cycles;
+	t->start_cycle = cycles;
 	t->ctxid = ctxid;
 	t->state = TST_INSYNC;
 }
@@ -93,6 +99,16 @@ void tracer_add_insn(struct tracer *t, int cond, int cycles)
 
 	t->cur_insn++;
 	t->cycle += cycles;
+}
+
+void tracer_add_data_address(struct tracer *t, uint32_t addr)
+{
+	dbg(DBG_DECODE, "--->>> adding address to last instruction: %08x\n",
+			addr);
+
+	t->cur_insn--;
+	t->insns[t->cur_insn].data_addr = addr;
+	t->cur_insn++;
 }
 
 void tracer_branch(struct tracer *t, uint32_t addr, int bsz)

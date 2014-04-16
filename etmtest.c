@@ -176,7 +176,13 @@ int main(int argc, char *const argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	buffer_len = sb.st_size / 2 + 1;
+	dbg(DBG_BASIC, "Filesize: %i\n", sb.st_size);
+	if (hex_input)
+		buffer_len = sb.st_size / 2 + 1;
+	else
+		buffer_len = sb.st_size;
+	dbg(DBG_BASIC, "Calculated Size of Stream Buffer: %i\n", buffer_len);
+
 	buffer_in = malloc(buffer_len);
 	memset(buffer_in, 0, buffer_len);
 
